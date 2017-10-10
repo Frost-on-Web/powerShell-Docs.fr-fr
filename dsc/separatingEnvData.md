@@ -31,22 +31,22 @@ ms.lasthandoff: 06/12/2017
 
 ```powershell
 Configuration MyDscConfiguration {
-    
+
     Node $AllNodes.Where{$_.Role -eq "WebServer"}.NodeName
     {
         WindowsFeature IISInstall {
-            Ensure = 'Present'
-            Name   = 'Web-Server'
+            Ensure      = 'Present'
+            Name        = 'Web-Server'
         }
-        
     }
     Node $AllNodes.Where{$_.Role -eq "VMHost"}.NodeName
     {
         WindowsFeature HyperVInstall {
-            Ensure = 'Present'
-            Name   = 'Hyper-V'
+            Ensure      = 'Present'
+            Name        = 'Hyper-V'
         }
     }
+
 }
 
 $MyData = 
@@ -55,12 +55,11 @@ $MyData =
     @(
         @{
             NodeName    = 'VM-1'
-            Role = 'WebServer'
+            Role        = 'WebServer'
         },
-
         @{
             NodeName    = 'VM-2'
-            Role = 'VMHost'
+            Role        = 'VMHost'
         }
     )
 }
@@ -75,14 +74,13 @@ MyDscConfiguration -ConfigurationData $MyData
 ```
     Directory: C:\DscTests\MyDscConfiguration
 
-
-Mode                LastWriteTime         Length Name                                                                                                                    
-----                -------------         ------ ----                                                                                                                    
--a----        3/31/2017   5:09 PM           1968 VM-1.mof                                                                                                                
--a----        3/31/2017   5:09 PM           1970 VM-2.mof  
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----        3/31/2017   5:09 PM           1968 VM-1.mof
+-a----        3/31/2017   5:09 PM           1970 VM-2.mof
 ```
  
-<span data-ttu-id="1144b-116">`$MyData` spécifie deux nœuds différents, chacun avec son propre `NodeName` et `Role`.</span><span class="sxs-lookup"><span data-stu-id="1144b-116">`$MyData` specifies two different nodes, each with its own `NodeName` and `Role`.</span></span> <span data-ttu-id="1144b-117">La configuration crée les blocs **Nœud** de façon dynamique en prenant la collection de nœuds qu’elle obtient à partir de `$MyData` (en particulier, `$AllNodes`) et filtre cette collection sur la propriété `Role`.</span><span class="sxs-lookup"><span data-stu-id="1144b-117">The configuration dynamically creates **Node** blocks by taking the collection of nodes it gets from `$MyData` (specifically, `$AllNodes`) and filters that collection against the `Role` property..</span></span>
+<span data-ttu-id="1144b-116">`$MyData` spécifie deux nœuds différents, chacun avec son propre `NodeName` et `Role`.</span><span class="sxs-lookup"><span data-stu-id="1144b-116">`$MyData` specifies two different nodes, each with its own `NodeName` and `Role`.</span></span> <span data-ttu-id="1144b-117">La configuration crée dynamiquement les blocs **Node** en prenant la collection de nœuds qu’elle obtient à partir de `$MyData` (en particulier, `$AllNodes`) et filtre cette collection sur la propriété `Role`.</span><span class="sxs-lookup"><span data-stu-id="1144b-117">The configuration dynamically creates **Node** blocks by taking the collection of nodes it gets from `$MyData` (specifically, `$AllNodes`) and filters that collection against the `Role` property..</span></span>
 
 ## <a name="using-configuration-data-to-define-development-and-production-environments"></a><span data-ttu-id="1144b-118">Utilisation des données de configuration pour définir les environnements de développement et de production</span><span class="sxs-lookup"><span data-stu-id="1144b-118">Using configuration data to define development and production environments</span></span>
 
@@ -94,9 +92,7 @@ Mode                LastWriteTime         Length Name
 
 ```powershell
 @{
-
     AllNodes = @(
-
         @{
             NodeName        = "*"
             SQLServerName   = "MySQLServer"
@@ -144,7 +140,7 @@ Configuration MyWebApp
     Import-DscResource -Module xWebAdministration
 
     Node $AllNodes.Where{$_.Role -contains "MSSQL"}.Nodename
-   {
+    {
         # Install prerequisites
         WindowsFeature installdotNet35
         {            
@@ -160,41 +156,37 @@ Configuration MyWebApp
             SourcePath   = $Node.SqlSource
             Features     = "SQLEngine,SSMS"
             DependsOn    = "[WindowsFeature]installdotNet35"
-
         }
-   }
+    }
 
-   Node $AllNodes.Where{$_.Role -contains "Web"}.NodeName
-   {
+    Node $AllNodes.Where{$_.Role -contains "Web"}.NodeName
+    {
         # Install the IIS role
         WindowsFeature IIS
         {
-            Ensure       = 'Present'
-            Name         = 'Web-Server'
+            Ensure  = 'Present'
+            Name    = 'Web-Server'
         }
 
         # Install the ASP .NET 4.5 role
         WindowsFeature AspNet45
         {
-            Ensure       = 'Present'
-            Name         = 'Web-Asp-Net45'
-
+            Ensure  = 'Present'
+            Name    = 'Web-Asp-Net45'
         }
 
         # Stop the default website
         xWebsite DefaultSite 
         {
-            Ensure       = 'Present'
-            Name         = 'Default Web Site'
-            State        = 'Stopped'
-            PhysicalPath = 'C:\inetpub\wwwroot'
-            DependsOn    = '[WindowsFeature]IIS'
-
+            Ensure          = 'Present'
+            Name            = 'Default Web Site'
+            State           = 'Stopped'
+            PhysicalPath    = 'C:\inetpub\wwwroot'
+            DependsOn       = '[WindowsFeature]IIS'
         }
 
         # Copy the website content
         File WebContent
-
         {
             Ensure          = 'Present'
             SourcePath      = $Node.SiteContents
@@ -202,16 +194,11 @@ Configuration MyWebApp
             Recurse         = $true
             Type            = 'Directory'
             DependsOn       = '[WindowsFeature]AspNet45'
-
         }       
 
-
         # Create the new Website
-
         xWebsite NewWebsite
-
         {
-
             Ensure          = 'Present'
             Name            = $WebSiteName
             State           = 'Started'
@@ -231,11 +218,10 @@ MyWebApp -ConfigurationData DevProdEnvData.psd1
 ```
     Directory: C:\DscTests\MyWebApp
 
-
-Mode                LastWriteTime         Length Name                                                                                                                    
-----                -------------         ------ ----                                                                                                                    
--a----        3/31/2017   5:47 PM           2944 Prod-SQL.mof                                                                                                            
--a----        3/31/2017   5:47 PM           6994 Dev.mof                                                                                                                 
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----        3/31/2017   5:47 PM           2944 Prod-SQL.mof
+-a----        3/31/2017   5:47 PM           6994 Dev.mof
 -a----        3/31/2017   5:47 PM           5338 Prod-IIS.mof
 ```
 
@@ -262,52 +248,50 @@ $MyData =
     AllNodes = 
     @(
         @{
-            NodeName           = “*”
-            LogPath            = “C:\Logs”
+            NodeName        = "*"
+            LogPath         = "C:\Logs"
         },
  
         @{
-            NodeName = “VM-1”
-            SiteContents = “C:\Site1”
-            SiteName = “Website1”
+            NodeName        = "VM-1"
+            SiteContents    = "C:\Site1"
+            SiteName        = "Website1"
         },
  
-        
         @{
-            NodeName = “VM-2”;
-            SiteContents = “C:\Site2”
-            SiteName = “Website2”
+            NodeName        = "VM-2";
+            SiteContents    = "C:\Site2"
+            SiteName        = "Website2"
         }
     );
  
     NonNodeData = 
     @{
         ConfigFileContents = (Get-Content C:\Template\Config.xml)
-     }   
+    }   
 } 
  
-configuration WebsiteConfig
+Configuration WebsiteConfig
 {
     Import-DscResource -ModuleName xWebAdministration -Name MSFT_xWebsite
  
-    node $AllNodes.NodeName
+    Node $AllNodes.NodeName
     {
         xWebsite Site
         {
             Name         = $Node.SiteName
             PhysicalPath = $Node.SiteContents
-            Ensure       = “Present”
+            Ensure       = "Present"
         }
  
         File ConfigFile
         {
-            DestinationPath = $Node.SiteContents + “\\config.xml”
+            DestinationPath = $Node.SiteContents + "\\config.xml"
             Contents = $ConfigurationData.NonNodeData.ConfigFileContents
         }
     }
 } 
 ```
-
 
 ## <a name="see-also"></a><span data-ttu-id="1144b-143">Voir aussi</span><span class="sxs-lookup"><span data-stu-id="1144b-143">See Also</span></span>
 - [<span data-ttu-id="1144b-144">Utilisation des données de configuration</span><span class="sxs-lookup"><span data-stu-id="1144b-144">Using configuration data</span></span>](configData.md)
